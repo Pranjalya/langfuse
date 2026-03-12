@@ -6,10 +6,9 @@ import {
   handleGetMemberships,
   handleUpdateMembership,
   handleDeleteMembership,
-} from "@/src/ee/features/admin-api/server/memberships";
+} from "@/src/features/admin-api/server/memberships";
 
 import { type NextApiRequest, type NextApiResponse } from "next";
-import { hasEntitlementBasedOnPlan } from "@/src/features/entitlements/server/hasEntitlement";
 
 export default async function handler(
   req: NextApiRequest,
@@ -46,17 +45,6 @@ export default async function handler(
     return res.status(403).json({
       error:
         "Invalid API key. Organization-scoped API key required for this operation.",
-    });
-  }
-
-  if (
-    !hasEntitlementBasedOnPlan({
-      plan: authCheck.scope.plan,
-      entitlement: "admin-api",
-    })
-  ) {
-    return res.status(403).json({
-      error: "This feature is not available on your current plan.",
     });
   }
 

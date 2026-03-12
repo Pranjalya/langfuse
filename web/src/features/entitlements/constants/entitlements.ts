@@ -28,6 +28,7 @@ const cloudAllPlansEntitlements: Entitlement[] = [
 const selfHostedAllPlansEntitlements: Entitlement[] = [
   "trace-deletion",
   "scheduled-blob-exports",
+  "admin-api",
 ];
 
 // Entitlement Limits: Limits on the number of resources that can be created/used
@@ -130,7 +131,7 @@ export const entitlementAccess: Record<
     },
   },
   oss: {
-    entitlements: selfHostedAllPlansEntitlements,
+    entitlements: [...selfHostedAllPlansEntitlements, "data-retention"],
     entitlementLimits: {
       "annotation-queue-count": false,
       "organization-member-count": false,
@@ -140,7 +141,7 @@ export const entitlementAccess: Record<
     },
   },
   "self-hosted:pro": {
-    entitlements: selfHostedAllPlansEntitlements,
+    entitlements: [...selfHostedAllPlansEntitlements, "data-retention"],
     entitlementLimits: {
       "annotation-queue-count": false,
       "organization-member-count": false,

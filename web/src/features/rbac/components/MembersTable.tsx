@@ -23,7 +23,6 @@ import { type Row } from "@tanstack/react-table";
 import { Trash } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Alert, AlertDescription, AlertTitle } from "@/src/components/ui/alert";
-import { useHasEntitlement } from "@/src/features/entitlements/hooks";
 import { showSuccessToast } from "@/src/features/notifications/showSuccessToast";
 import { useHasProjectAccess } from "@/src/features/rbac/utils/checkProjectAccess";
 import { RoleSelectItem } from "@/src/features/rbac/components/RoleSelectItem";
@@ -144,8 +143,6 @@ export function MembersTable({
     projectId: project?.id,
     scope: "projectMembers:CUD",
   });
-
-  const projectRolesEntitlement = useHasEntitlement("rbac-project-roles");
 
   const columns: LangfuseColumnDef<MembersTableRow>[] = [
     {
@@ -275,8 +272,6 @@ export function MembersTable({
               const { orgMembershipId, userId } = row.getValue(
                 "meta",
               ) as MembersTableRow["meta"];
-
-              if (!projectRolesEntitlement) return "N/A on plan";
 
               return (
                 <ProjectRoleDropdown

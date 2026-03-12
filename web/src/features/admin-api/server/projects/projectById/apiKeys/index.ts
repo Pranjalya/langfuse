@@ -5,27 +5,22 @@ import { auditLog } from "@/src/features/audit-logs/auditLog";
 import { z } from "zod/v4";
 import { createAndAddApiKeysToDb } from "@langfuse/shared/src/server/auth/apiKeys";
 
+const projectIdQuerySchema = z.object({
+  projectId: z.string(),
+});
+
 export const validateQueryAndExtractId = (query: unknown): string | null => {
-  const inputQuerySchema = z.object({
-    projectId: z.string(),
-  });
-  const validation = inputQuerySchema.safeParse(query);
-  if (!validation.success) {
-    return null;
-  }
-  return validation.data.projectId;
+  const parsed = projectIdQuerySchema.safeParse(query);
+  return parsed.success ? parsed.data.projectId : null;
 };
 
 export async function handleGetApiKeys(
-  req: NextApiRequest,
+  _req: NextApiRequest,
   res: NextApiResponse,
   projectId: string,
 ) {
   const apiKeys = await prisma.apiKey.findMany({
-    where: {
-      projectId,
-      scope: "PROJECT",
-    },
+    where: { projectId, scope: "PROJECT" },
     select: {
       id: true,
       createdAt: true,
@@ -35,9 +30,7 @@ export async function handleGetApiKeys(
       publicKey: true,
       displaySecretKey: true,
     },
-    orderBy: {
-      createdAt: "asc",
-    },
+    orderBy: { createdAt: "asc" },
   });
 
   return res.status(200).json({ apiKeys });
@@ -49,50 +42,42 @@ export async function handleCreateApiKey(
   projectId: string,
   orgId: string,
 ) {
-  // Validate the request body
-  const createApiKeySchema = z.object({
+  const bodySchema = z.object({
     note: z.string().optional(),
     publicKey: z.string().optional(),
     secretKey: z.string().optional(),
   });
 
-  const validationResult = createApiKeySchema.safeParse(req.body);
-
-  if (!validationResult.success) {
+  const parsed = bodySchema.safeParse(req.body);
+  if (!parsed.success) {
     return res.status(400).json({
       message: "Invalid request body",
-      details: validationResult.error.format(),
+      details: parsed.error.format(),
     });
   }
 
-  const { note, publicKey, secretKey } = validationResult.data;
+  const { note, publicKey, secretKey } = parsed.data;
+  const hasAnyPredefined = Boolean(publicKey || secretKey);
 
-  // Validate predefined keys if provided
-  if (publicKey || secretKey) {
-    // Both keys must be provided together
-    if (!publicKey || !secretKey) {
-      return res.status(400).json({
-        message:
-          "Both publicKey and secretKey must be provided together when specifying predefined keys",
-      });
-    }
+  if (hasAnyPredefined && (!publicKey || !secretKey)) {
+    return res.status(400).json({
+      message:
+        "Both publicKey and secretKey must be provided together when specifying predefined keys",
+    });
+  }
 
-    // Validate key format
-    if (!publicKey.startsWith("pk-lf-")) {
-      return res.status(400).json({
-        message: "publicKey must start with 'pk-lf-'",
-      });
-    }
-
-    if (!secretKey.startsWith("sk-lf-")) {
-      return res.status(400).json({
-        message: "secretKey must start with 'sk-lf-'",
-      });
-    }
+  if (publicKey && !publicKey.startsWith("pk-lf-")) {
+    return res
+      .status(400)
+      .json({ message: "publicKey must start with 'pk-lf-'" });
+  }
+  if (secretKey && !secretKey.startsWith("sk-lf-")) {
+    return res
+      .status(400)
+      .json({ message: "secretKey must start with 'sk-lf-'" });
   }
 
   try {
-    // Create the API key
     const apiKeyMeta = await createAndAddApiKeysToDb({
       prisma,
       entityId: projectId,
@@ -102,34 +87,30 @@ export async function handleCreateApiKey(
         publicKey && secretKey ? { publicKey, secretKey } : undefined,
     });
 
-    // Log the API key creation
     await auditLog({
       resourceType: "apiKey",
       resourceId: apiKeyMeta.id,
       action: "create",
-      orgId: orgId,
-      projectId: projectId,
+      orgId,
+      projectId,
       orgRole: "ADMIN",
       apiKeyId: "ORG_KEY",
     });
 
-    logger.info(
-      `Created API key ${apiKeyMeta.id} for project ${projectId} via public API`,
-    );
+    logger.info(`Created API key ${apiKeyMeta.id} for project ${projectId}`);
 
     return res.status(201).json(apiKeyMeta);
-  } catch (error) {
-    // Handle database unique constraint violations
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     if (
-      error instanceof Error &&
-      (error.message.includes("Unique constraint") ||
-        error.message.includes("unique constraint"))
+      message.includes("Unique constraint") ||
+      message.includes("unique constraint")
     ) {
       return res.status(409).json({
         message:
           "API key with the provided publicKey or secretKey already exists",
       });
     }
-    throw error;
+    throw e;
   }
 }

@@ -64,26 +64,7 @@ import { projectRoleAccessRights } from "@/src/features/rbac/constants/projectAc
 import { hasEntitlementBasedOnPlan } from "@/src/features/entitlements/server/hasEntitlement";
 import { getSSOBlockedDomains } from "@/src/features/auth-credentials/server/signupApiHandler";
 import { createSupportEmailHash } from "@/src/features/support-chat/createSupportEmailHash";
-
-function canCreateOrganizations(userEmail: string | null): boolean {
-  const instancePlan = getSelfHostedInstancePlanServerSide();
-
-  // if no allowlist is set or no entitlement for self-host-allowed-organization-creators, allow all users to create organizations
-  if (
-    !env.LANGFUSE_ALLOWED_ORGANIZATION_CREATORS ||
-    !hasEntitlementBasedOnPlan({
-      plan: instancePlan,
-      entitlement: "self-host-allowed-organization-creators",
-    })
-  )
-    return true;
-
-  if (!userEmail) return false;
-
-  const allowedOrgCreators =
-    env.LANGFUSE_ALLOWED_ORGANIZATION_CREATORS.toLowerCase().split(",");
-  return allowedOrgCreators.includes(userEmail.toLowerCase());
-}
+import { canCreateOrganizations } from "@/src/features/auth/lib/organizationRestriction";
 
 const staticProviders: Provider[] = [
   CredentialsProvider({

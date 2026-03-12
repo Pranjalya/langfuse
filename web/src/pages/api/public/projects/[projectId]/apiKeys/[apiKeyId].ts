@@ -6,8 +6,7 @@ import { cors, runMiddleware } from "@/src/features/public-api/server/cors";
 import {
   validateQueryParams,
   handleDeleteApiKey,
-} from "@/src/ee/features/admin-api/server/projects/projectById/apiKeys/apiKeyById";
-import { hasEntitlementBasedOnPlan } from "@/src/features/entitlements/server/hasEntitlement";
+} from "@/src/features/admin-api/server/projects/projectById/apiKeys/apiKeyById";
 
 export default async function handler(
   req: NextApiRequest,
@@ -43,17 +42,6 @@ export default async function handler(
       });
     }
     // END CHECK AUTH
-
-    if (
-      !hasEntitlementBasedOnPlan({
-        plan: authCheck.scope.plan,
-        entitlement: "admin-api",
-      })
-    ) {
-      return res.status(403).json({
-        error: "This feature is not available on your current plan.",
-      });
-    }
 
     const params = validateQueryParams(req.query);
     if (!params) {

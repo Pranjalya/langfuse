@@ -7,8 +7,7 @@ import {
   validateQueryAndExtractId,
   handleGetApiKeys,
   handleCreateApiKey,
-} from "@/src/ee/features/admin-api/server/projects/projectById/apiKeys";
-import { hasEntitlementBasedOnPlan } from "@/src/features/entitlements/server/hasEntitlement";
+} from "@/src/features/admin-api/server/projects/projectById/apiKeys";
 
 export default async function handler(
   req: NextApiRequest,
@@ -44,17 +43,6 @@ export default async function handler(
       });
     }
     // END CHECK AUTH
-
-    if (
-      !hasEntitlementBasedOnPlan({
-        plan: authCheck.scope.plan,
-        entitlement: "admin-api",
-      })
-    ) {
-      return res.status(403).json({
-        error: "This feature is not available on your current plan.",
-      });
-    }
 
     const projectId = validateQueryAndExtractId(req.query);
     if (!projectId) {

@@ -2,12 +2,11 @@ import { ApiAuthService } from "@/src/features/public-api/server/apiAuth";
 import { cors, runMiddleware } from "@/src/features/public-api/server/cors";
 import { prisma } from "@langfuse/shared/src/db";
 import { logger, redis } from "@langfuse/shared/src/server";
-import { hasEntitlementBasedOnPlan } from "@/src/features/entitlements/server/hasEntitlement";
 import {
   handleGetMemberships,
   handleUpdateMembership,
   handleDeleteMembership,
-} from "@/src/ee/features/admin-api/server/projects/projectById/memberships";
+} from "@/src/features/admin-api/server/projects/projectById/memberships";
 
 import { type NextApiRequest, type NextApiResponse } from "next";
 
@@ -53,30 +52,6 @@ export default async function handler(
     return res.status(403).json({
       error:
         "Invalid API key. Organization-scoped API key required for this operation.",
-    });
-  }
-
-  // Check if organization has the rbac-project-roles entitlement
-  if (
-    !hasEntitlementBasedOnPlan({
-      plan: authCheck.scope.plan,
-      entitlement: "rbac-project-roles",
-    })
-  ) {
-    return res.status(403).json({
-      error: "Your plan does not include project role management.",
-    });
-  }
-
-  // Check for admin-api entitlement
-  if (
-    !hasEntitlementBasedOnPlan({
-      plan: authCheck.scope.plan,
-      entitlement: "admin-api",
-    })
-  ) {
-    return res.status(403).json({
-      error: "This feature is not available on your current plan.",
     });
   }
 

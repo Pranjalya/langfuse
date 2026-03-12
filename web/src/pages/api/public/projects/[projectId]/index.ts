@@ -5,8 +5,7 @@ import { logger, redis } from "@langfuse/shared/src/server";
 import {
   handleUpdateProject,
   handleDeleteProject,
-} from "@/src/ee/features/admin-api/server/projects/projectById";
-import { hasEntitlementBasedOnPlan } from "@/src/features/entitlements/server/hasEntitlement";
+} from "@/src/features/admin-api/server/projects/projectById";
 import { type NextApiRequest, type NextApiResponse } from "next";
 
 export default async function handler(
@@ -50,17 +49,6 @@ export default async function handler(
     });
   }
   // END CHECK AUTH
-
-  if (
-    !hasEntitlementBasedOnPlan({
-      plan: authCheck.scope.plan,
-      entitlement: "admin-api",
-    })
-  ) {
-    return res.status(403).json({
-      error: "This feature is not available on your current plan.",
-    });
-  }
 
   // Check if project exists and belongs to the organization
   const project = await prisma.project.findFirst({

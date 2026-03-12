@@ -33,10 +33,7 @@ import { Input } from "@/src/components/ui/input";
 import { Role } from "@langfuse/shared";
 import { usePostHogClientCapture } from "@/src/features/posthog-analytics/usePostHogClientCapture";
 import { useHasOrganizationAccess } from "@/src/features/rbac/utils/checkOrganizationAccess";
-import {
-  useHasEntitlement,
-  useEntitlementLimit,
-} from "@/src/features/entitlements/hooks";
+import { useEntitlementLimit } from "@/src/features/entitlements/hooks";
 import { useHasProjectAccess } from "@/src/features/rbac/utils/checkProjectAccess";
 import { RoleSelectItem } from "@/src/features/rbac/components/RoleSelectItem";
 import { ActionButton } from "@/src/components/ActionButton";
@@ -82,9 +79,7 @@ export function CreateProjectMemberButton(props: {
       enabled: hasOrgAccess,
     },
   ).data?.totalCount;
-  const hasProjectRoleEntitlement = useHasEntitlement("rbac-project-roles");
-  const hasOnlySingleProjectAccess =
-    !hasOrgAccess && hasProjectAccess && hasProjectRoleEntitlement;
+  const hasOnlySingleProjectAccess = !hasOrgAccess && hasProjectAccess;
 
   const utils = api.useUtils();
   const mutCreateProjectMember = api.members.create.useMutation({
@@ -205,7 +200,7 @@ export function CreateProjectMemberButton(props: {
                     )}
                   />
                 )}
-                {props.project !== undefined && hasProjectRoleEntitlement && (
+                {props.project !== undefined && (
                   <FormField
                     control={form.control}
                     name="projectRole"

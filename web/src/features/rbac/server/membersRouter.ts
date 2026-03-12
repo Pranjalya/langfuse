@@ -19,7 +19,6 @@ import {
 } from "@langfuse/shared";
 import { sendMembershipInvitationEmail } from "@langfuse/shared/src/server";
 import { env } from "@/src/env.mjs";
-import { hasEntitlement } from "@/src/features/entitlements/server/hasEntitlement";
 import { throwIfExceedsLimit } from "@/src/features/entitlements/server/hasEntitlementLimit";
 import {
   hasProjectAccess,
@@ -172,21 +171,6 @@ export const membersRouter = createTRPCRouter({
         ownRole: ctx.session.orgRole,
         role: input.orgRole,
       });
-
-      // check for entilement (project role)
-      if (input.projectId && input.projectRole) {
-        const entitled = hasEntitlement({
-          entitlement: "rbac-project-roles",
-          sessionUser: ctx.session.user,
-          orgId: input.orgId,
-        });
-        if (!entitled)
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message:
-              "Organization does not have the required entitlement to set project roles",
-          });
-      }
 
       const user = await ctx.prisma.user.findUnique({
         where: {

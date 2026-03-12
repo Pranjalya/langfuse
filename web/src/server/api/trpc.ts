@@ -93,7 +93,7 @@ import {
   ClickHouseResourceError,
 } from "@langfuse/shared/src/server";
 
-import { AdminApiAuthService } from "@/src/ee/features/admin-api/server/adminApiAuth";
+import { AdminApiAuthService } from "@/src/features/admin-api/server/adminApiAuth";
 import { env } from "@/src/env.mjs";
 import { BaseError, parseIO } from "@langfuse/shared";
 

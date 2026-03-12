@@ -122,6 +122,42 @@ service:
         - commons.UnauthorizedError
         - commons.MethodNotAllowedError
 
+    # Project endpoints
+    getProjects:
+      docs: Get all projects for an organization
+      method: GET
+      path: /organizations/{organizationId}/projects
+      path-parameters:
+        organizationId: string
+      response: OrganizationProjectsResponse
+      errors:
+        - commons.Error
+        - commons.UnauthorizedError
+        - commons.MethodNotAllowedError
+
+    createProject:
+      docs: Create a new project in an organization
+      method: POST
+      path: /organizations/{organizationId}/projects
+      path-parameters:
+        organizationId: string
+      request:
+        name: CreateOrganizationProjectRequest
+        body:
+          properties:
+            name: string
+            metadata:
+              type: optional<map<string, unknown>>
+              docs: Optional metadata for the project
+            retention:
+              type: optional<integer>
+              docs: Number of days to retain data. Must be 0 or at least 3 days. Requires data-retention entitlement for non-zero values. Optional.
+      response: CreatedProject
+      errors:
+        - commons.Error
+        - commons.UnauthorizedError
+        - commons.MethodNotAllowedError
+
 types:
   Organizations:
     docs: List of organizations
@@ -149,6 +185,23 @@ types:
         docs: Metadata for the project
       createdAt: datetime
       updatedAt: datetime
+
+  OrganizationProjectsResponse:
+    docs: List of projects for an organization
+    properties:
+      projects: list<OrganizationProject>
+
+  CreatedProject:
+    docs: Project object returned on create
+    properties:
+      id: string
+      name: string
+      metadata:
+        type: optional<map<string, unknown>>
+        docs: Metadata for the project
+      retentionDays:
+        type: optional<integer>
+        docs: Number of days to retain data (omitted if null or 0)
 
   DeleteOrganizationResponse:
     docs: Response for successful organization deletion

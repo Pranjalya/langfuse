@@ -40,6 +40,10 @@ const DeleteResponseSchema = z.object({
   success: z.boolean(),
 });
 
+const AdminOrganizationProjectsListSchema = z.object({
+  projects: z.array(OrganizationProjectSchema),
+});
+
 // Schema for API key response
 const ApiKeyResponseSchema = z.object({
   id: z.string(),
@@ -796,6 +800,69 @@ describe("Admin Organizations API", () => {
 
       expect(result.status).toBe(401);
       expect(result.body.error).toContain("Unauthorized");
+    });
+  });
+
+  describe("Organization Projects (Admin)", () => {
+    let testOrgId: string;
+
+    beforeEach(async () => {
+      const org = await prisma.organization.create({
+        data: { name: `Test Org ${randomUUID().substring(0, 8)}` },
+      });
+      testOrgId = org.id;
+    });
+
+    afterEach(async () => {
+      await prisma.project.deleteMany({ where: { orgId: testOrgId } });
+      await prisma.organization
+        .delete({ where: { id: testOrgId } })
+        .catch(() => {
+          /* ignore if already deleted */
+        });
+    });
+
+    it("should create and list organization projects via admin API", async () => {
+      const projectName = `Admin Project ${randomUUID().substring(0, 8)}`;
+
+      const createResult = await makeAPICall(
+        "POST",
+        `/api/admin/organizations/${testOrgId}/projects`,
+        { name: projectName, metadata: { source: "admin-test" } },
+        `Bearer ${ADMIN_API_KEY}`,
+      );
+
+      expect(createResult.status).toBe(201);
+      expect(createResult.body.id).toBeDefined();
+      expect(createResult.body.name).toBe(projectName);
+      expect(createResult.body.metadata).toEqual({ source: "admin-test" });
+
+      const listResult = await makeZodVerifiedAPICall(
+        AdminOrganizationProjectsListSchema,
+        "GET",
+        `/api/admin/organizations/${testOrgId}/projects`,
+        undefined,
+        `Bearer ${ADMIN_API_KEY}`,
+        200,
+      );
+
+      expect(listResult.status).toBe(200);
+      expect(
+        listResult.body.projects.some((p) => p.id === createResult.body.id),
+      ).toBe(true);
+    });
+
+    it("should return 404 when listing projects for a non-existent organization", async () => {
+      const nonExistentId = randomUUID();
+      const result = await makeAPICall(
+        "GET",
+        `/api/admin/organizations/${nonExistentId}/projects`,
+        undefined,
+        `Bearer ${ADMIN_API_KEY}`,
+      );
+
+      expect(result.status).toBe(404);
+      expect(result.body.error).toContain("Organization not found");
     });
   });
 

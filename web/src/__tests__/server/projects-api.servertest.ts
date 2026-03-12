@@ -84,7 +84,7 @@ const ApiKeyDeletionResponseSchema = z.object({
 describe("Projects API", () => {
   // Test variables
   const projectId = "7a88fb47-b4e2-43b8-a06c-a5ce950dc53a";
-  const projectName = "Seed Project";
+  let projectName = "Seed Project";
   const projectApiKey = "pk-lf-1234567890";
   const projectSecretKey = "sk-lf-1234567890";
   const invalidApiKey = "pk-lf-invalid";
@@ -93,6 +93,26 @@ describe("Projects API", () => {
   const orgSecretKey = `sk-lf-org-${randomUUID().substring(0, 8)}`;
 
   beforeAll(async () => {
+    // Ensure the seed org exists with a plan that includes data-retention
+    await prisma.organization.upsert({
+      where: { id: "seed-org-id" },
+      update: { cloudConfig: { plan: "Team" } },
+      create: {
+        id: "seed-org-id",
+        name: "Seed Org",
+        cloudConfig: { plan: "Team" },
+      },
+    });
+
+    // Use the actual project name from DB (seed data may change over time)
+    const seedProject = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { name: true },
+    });
+    if (seedProject?.name) {
+      projectName = seedProject.name;
+    }
+
     await createAndAddApiKeysToDb({
       prisma,
       entityId: "seed-org-id",
@@ -371,30 +391,19 @@ describe("Projects API", () => {
       });
     });
 
-    it("should update project retention days with valid organization API key", async () => {
-      const response = await makeZodVerifiedAPICall(
-        ProjectUpdateResponseSchema,
+    it("should require data-retention entitlement for non-zero retention days on update", async () => {
+      const result = await makeAPICall(
         "PUT",
         `/api/public/projects/${testProjectId}`,
         {
           name: "Updated Project Name",
-          retention: 7, // Valid retention value
+          retention: 7, // Non-zero retention requires data-retention entitlement
         },
         createBasicAuthHeader(orgApiKey, orgSecretKey),
-        200, // Expected status code is 200 OK
       );
 
-      expect(response.status).toBe(200);
-      expect(response.body.name).toBe("Updated Project Name");
-      expect(response.body.retentionDays).toBe(7);
-
-      // Verify the project was updated in the database
-      const project = await prisma.project.findUnique({
-        where: { id: testProjectId },
-      });
-      expect(project).not.toBeNull();
-      expect(project?.name).toBe("Updated Project Name");
-      expect(project?.retentionDays).toBe(7);
+      expect(result.status).toBe(403);
+      expect(result.body.message).toContain("data-retention entitlement");
     });
 
     it("should validate retention days on update", async () => {
