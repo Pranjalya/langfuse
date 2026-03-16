@@ -18,9 +18,9 @@ import {
 import { batchExportQueueProcessor } from "./queues/batchExportQueue";
 import { onShutdown } from "./utils/shutdown";
 import helmet from "helmet";
-import { cloudUsageMeteringQueueProcessor } from "./queues/cloudUsageMeteringQueue";
-import { cloudSpendAlertQueueProcessor } from "./queues/cloudSpendAlertQueue";
-import { cloudFreeTierUsageThresholdQueueProcessor } from "./queues/cloudFreeTierUsageThresholdQueue";
+// import { cloudUsageMeteringQueueProcessor } from "./queues/cloudUsageMeteringQueue";
+// import { cloudSpendAlertQueueProcessor } from "./queues/cloudSpendAlertQueue";
+// import { cloudFreeTierUsageThresholdQueueProcessor } from "./queues/cloudFreeTierUsageThresholdQueue";
 import { WorkerManager } from "./queues/workerManager";
 import {
   CoreDataS3ExportQueue,
@@ -59,7 +59,7 @@ import {
   blobStorageIntegrationProcessor,
 } from "./queues/blobStorageIntegrationQueue";
 import { coreDataS3ExportProcessor } from "./queues/coreDataS3ExportQueue";
-import { meteringDataPostgresExportProcessor } from "./ee/meteringDataPostgresExport/handleMeteringDataPostgresExportJob";
+// import { meteringDataPostgresExportProcessor } from "./ee/meteringDataPostgresExport/handleMeteringDataPostgresExportJob";
 import {
   dataRetentionProcessingProcessor,
   dataRetentionProcessor,
@@ -152,21 +152,21 @@ if (env.LANGFUSE_S3_CORE_DATA_EXPORT_IS_ENABLED === "true") {
   );
 }
 
-if (env.LANGFUSE_POSTGRES_METERING_DATA_EXPORT_IS_ENABLED === "true") {
-  // Instantiate the queue to trigger scheduled jobs
-  MeteringDataPostgresExportQueue.getInstance();
-  WorkerManager.register(
-    QueueName.MeteringDataPostgresExportQueue,
-    meteringDataPostgresExportProcessor,
-    {
-      limiter: {
-        // Process at most `max` jobs per 30 seconds
-        max: 1,
-        duration: 30_000,
-      },
-    },
-  );
-}
+// if (env.LANGFUSE_POSTGRES_METERING_DATA_EXPORT_IS_ENABLED === "true") {
+//   // Instantiate the queue to trigger scheduled jobs
+//   MeteringDataPostgresExportQueue.getInstance();
+//   WorkerManager.register(
+//     QueueName.MeteringDataPostgresExportQueue,
+//     meteringDataPostgresExportProcessor,
+//     {
+//       limiter: {
+//         // Process at most `max` jobs per 30 seconds
+//         max: 1,
+//         duration: 30_000,
+//       },
+//     },
+//   );
+// }
 
 if (env.QUEUE_CONSUMER_TRACE_DELETE_QUEUE_IS_ENABLED === "true") {
   WorkerManager.register(QueueName.TraceDelete, traceDeleteProcessor, {
@@ -338,66 +338,66 @@ if (env.QUEUE_CONSUMER_INGESTION_SECONDARY_QUEUE_IS_ENABLED === "true") {
   );
 }
 
-if (
-  env.QUEUE_CONSUMER_CLOUD_USAGE_METERING_QUEUE_IS_ENABLED === "true" &&
-  env.STRIPE_SECRET_KEY
-) {
-  WorkerManager.register(
-    QueueName.CloudUsageMeteringQueue,
-    cloudUsageMeteringQueueProcessor,
-    {
-      concurrency: 1,
-      limiter: {
-        // Process at most `max` jobs per 30 seconds
-        max: 1,
-        duration: 30_000,
-      },
-    },
-  );
-}
+// if (
+//   env.QUEUE_CONSUMER_CLOUD_USAGE_METERING_QUEUE_IS_ENABLED === "true" &&
+//   env.STRIPE_SECRET_KEY
+// ) {
+//   WorkerManager.register(
+//     QueueName.CloudUsageMeteringQueue,
+//     cloudUsageMeteringQueueProcessor,
+//     {
+//       concurrency: 1,
+//       limiter: {
+//         // Process at most `max` jobs per 30 seconds
+//         max: 1,
+//         duration: 30_000,
+//       },
+//     },
+//   );
+// }
 
 // Cloud Spend Alert Queue: Only enable in cloud environment with Stripe
-if (
-  env.QUEUE_CONSUMER_CLOUD_SPEND_ALERT_QUEUE_IS_ENABLED === "true" &&
-  env.STRIPE_SECRET_KEY
-) {
-  WorkerManager.register(
-    QueueName.CloudSpendAlertQueue,
-    cloudSpendAlertQueueProcessor,
-    {
-      concurrency: 20,
-      limiter: {
-        // Process at most 600 jobs per minute / 10 jobs per second for Stripe API rate limits
-        // - stripe allows 100 ops / sec but we want to use a lower limit to account for 3 environments and other calls
-        // - See: https://docs.stripe.com/rate-limits
-        max: 900,
-        duration: 60_000,
-      },
-    },
-  );
-}
+// if (
+//   env.QUEUE_CONSUMER_CLOUD_SPEND_ALERT_QUEUE_IS_ENABLED === "true" &&
+//   env.STRIPE_SECRET_KEY
+// ) {
+//   WorkerManager.register(
+//     QueueName.CloudSpendAlertQueue,
+//     cloudSpendAlertQueueProcessor,
+//     {
+//       concurrency: 20,
+//       limiter: {
+//         // Process at most 600 jobs per minute / 10 jobs per second for Stripe API rate limits
+//         // - stripe allows 100 ops / sec but we want to use a lower limit to account for 3 environments and other calls
+//         // - See: https://docs.stripe.com/rate-limits
+//         max: 900,
+//         duration: 60_000,
+//       },
+//     },
+//   );
+// }
 
 // Free Tier Usage Threshold Queue: Only enable in cloud environment
-if (
-  env.QUEUE_CONSUMER_FREE_TIER_USAGE_THRESHOLD_QUEUE_IS_ENABLED === "true" &&
-  env.NEXT_PUBLIC_LANGFUSE_CLOUD_REGION && // Only in cloud deployments
-  env.STRIPE_SECRET_KEY
-) {
-  // Instantiate the queue to trigger scheduled jobs
-  CloudFreeTierUsageThresholdQueue.getInstance();
-  WorkerManager.register(
-    QueueName.CloudFreeTierUsageThresholdQueue,
-    cloudFreeTierUsageThresholdQueueProcessor,
-    {
-      concurrency: 1,
-      limiter: {
-        // Process at most `max` jobs per 30 seconds
-        max: 1,
-        duration: 30_000,
-      },
-    },
-  );
-}
+// if (
+//   env.QUEUE_CONSUMER_FREE_TIER_USAGE_THRESHOLD_QUEUE_IS_ENABLED === "true" &&
+//   env.NEXT_PUBLIC_LANGFUSE_CLOUD_REGION && // Only in cloud deployments
+//   env.STRIPE_SECRET_KEY
+// ) {
+//   // Instantiate the queue to trigger scheduled jobs
+//   CloudFreeTierUsageThresholdQueue.getInstance();
+//   WorkerManager.register(
+//     QueueName.CloudFreeTierUsageThresholdQueue,
+//     cloudFreeTierUsageThresholdQueueProcessor,
+//     {
+//       concurrency: 1,
+//       limiter: {
+//         // Process at most `max` jobs per 30 seconds
+//         max: 1,
+//         duration: 30_000,
+//       },
+//     },
+//   );
+// }
 
 if (env.QUEUE_CONSUMER_EXPERIMENT_CREATE_QUEUE_IS_ENABLED === "true") {
   WorkerManager.register(

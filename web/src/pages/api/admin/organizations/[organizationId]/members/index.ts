@@ -2,35 +2,33 @@ import { type NextApiRequest, type NextApiResponse } from "next";
 import { logger } from "@langfuse/shared/src/server";
 import { AdminApiAuthService } from "@/src/features/admin-api/server/adminApiAuth";
 import {
-  handleGetOrganization,
-  handleUpdateOrganization,
-  handleDeleteOrganization,
-} from "@/src/features/admin-api/server/organizations/organizationById";
+  handleGetOrganizationMembers,
+  handleUpdateOrganizationMember,
+  handleDeleteOrganizationMember,
+} from "@/src/features/admin-api/server/organizations/members";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
   try {
-    // Verify admin API authentication, only allow on self-hosted (not on Langfuse Cloud)
     if (!AdminApiAuthService.handleAdminAuth(req, res)) {
       return;
     }
 
-    // Handle different HTTP methods
     switch (req.method) {
       case "GET":
-        return await handleGetOrganization(req, res);
+        return await handleGetOrganizationMembers(req, res);
       case "PUT":
-        return await handleUpdateOrganization(req, res);
+        return await handleUpdateOrganizationMember(req, res);
       case "DELETE":
-        return await handleDeleteOrganization(req, res);
+        return await handleDeleteOrganizationMember(req, res);
       default:
         res.status(405).json({ error: "Method Not Allowed" });
         return;
     }
   } catch (e) {
-    logger.error("Failed to process organization request", e);
+    logger.error("Failed to process organization members request", e);
     res.status(500).json({ error: "Internal server error" });
   }
 }

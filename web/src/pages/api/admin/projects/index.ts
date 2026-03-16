@@ -2,9 +2,9 @@ import { type NextApiRequest, type NextApiResponse } from "next";
 import { logger } from "@langfuse/shared/src/server";
 import { AdminApiAuthService } from "@/src/features/admin-api/server/adminApiAuth";
 import {
-  handleGetOrganizations,
-  handleCreateOrganization,
-} from "@/src/features/admin-api/server/organizations";
+  handleGetProjects,
+  handleCreateProject,
+} from "@/src/features/admin-api/server/projects";
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,22 +16,19 @@ export default async function handler(
       return;
     }
 
-    // Verify admin API authentication, only allow on self-hosted (not on Langfuse Cloud)
     if (!AdminApiAuthService.handleAdminAuth(req, res)) {
       return;
     }
 
-    // For GET requests, return all organizations
     if (req.method === "GET") {
-      return await handleGetOrganizations(req, res);
+      return await handleGetProjects(req, res);
     }
 
-    // For POST requests, create a new organization
     if (req.method === "POST") {
-      return await handleCreateOrganization(req, res);
+      return await handleCreateProject(req, res);
     }
   } catch (e) {
-    logger.error("Failed to process organization request", e);
+    logger.error("Failed to process projects request", e);
     res.status(500).json({ error: "Internal server error" });
   }
 }

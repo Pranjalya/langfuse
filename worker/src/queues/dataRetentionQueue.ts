@@ -4,8 +4,8 @@ import {
   logger,
   QueueJobs,
 } from "@langfuse/shared/src/server";
-import { handleDataRetentionSchedule } from "../ee/dataRetention/handleDataRetentionSchedule";
-import { handleDataRetentionProcessingJob } from "../ee/dataRetention/handleDataRetentionProcessingJob";
+import { handleDataRetentionSchedule } from "../features/data-retention/scheduler";
+import { handleDataRetentionProcessingJob } from "../features/data-retention/worker";
 import { SpanKind } from "@opentelemetry/api";
 
 export const dataRetentionProcessor: Processor = async (job) => {

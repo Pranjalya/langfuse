@@ -1,4 +1,4 @@
-import { mapStripeProductIdToPlan } from "@/src/ee/features/billing/utils/stripeCatalogue";
+// import { mapStripeProductIdToPlan } from "@/src/ee/features/billing/utils/stripeCatalogue";
 import { env } from "@/src/env.mjs";
 import { type Plan } from "@langfuse/shared";
 import { type CloudConfigSchema } from "@langfuse/shared";
@@ -34,6 +34,7 @@ export function getOrganizationPlanServerSide(
         }
       }
       // stripe plan via product id
+      /*
       if (cloudConfig.stripe?.activeProductId) {
         const stripePlan = mapStripeProductIdToPlan(
           cloudConfig.stripe.activeProductId,
@@ -42,6 +43,7 @@ export function getOrganizationPlanServerSide(
           return stripePlan;
         }
       }
+      */
     }
     return "cloud:hobby";
   }

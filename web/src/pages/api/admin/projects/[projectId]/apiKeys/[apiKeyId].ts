@@ -4,7 +4,7 @@ import { AdminApiAuthService } from "@/src/features/admin-api/server/adminApiAut
 import {
   validateQueryParams,
   handleDeleteApiKey,
-} from "@/src/features/admin-api/server/organizations/apiKeys/apiKeyById";
+} from "@/src/features/admin-api/server/projects/apiKeys/apiKeyById";
 import { prisma } from "@langfuse/shared/src/db";
 
 export default async function handler(
@@ -17,7 +17,6 @@ export default async function handler(
       return;
     }
 
-    // Verify admin API authentication, only allow on self-hosted (not on Langfuse Cloud)
     if (!AdminApiAuthService.handleAdminAuth(req, res)) {
       return;
     }
@@ -27,27 +26,26 @@ export default async function handler(
       return res.status(400).json({ error: "Invalid request parameters" });
     }
 
-    const { organizationId, apiKeyId } = params;
+    const { projectId, apiKeyId } = params;
 
-    // Check if organization exists
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
+    // Check if project exists
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
     });
 
-    if (!organization) {
-      return res.status(404).json({ error: "Organization not found" });
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
     }
 
-    // Handle different HTTP methods
     switch (req.method) {
       case "DELETE":
-        return await handleDeleteApiKey(req, res, organizationId, apiKeyId);
+        return await handleDeleteApiKey(req, res, projectId, apiKeyId);
       default:
         res.status(405).json({ error: "Method Not Allowed" });
         return;
     }
   } catch (e) {
-    logger.error("Failed to process organization API key request", e);
+    logger.error("Failed to process project API key request", e);
     res.status(500).json({ error: "Internal server error" });
   }
 }

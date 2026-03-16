@@ -5,7 +5,7 @@ import {
   validateQueryAndExtractId,
   handleGetApiKeys,
   handleCreateApiKey,
-} from "@/src/features/admin-api/server/organizations/apiKeys";
+} from "@/src/features/admin-api/server/projects/apiKeys";
 import { prisma } from "@langfuse/shared/src/db";
 
 export default async function handler(
@@ -18,37 +18,37 @@ export default async function handler(
       return;
     }
 
-    // Verify admin API authentication, only allow on self-hosted (not on Langfuse Cloud)
+    // Verify admin API authentication
     if (!AdminApiAuthService.handleAdminAuth(req, res)) {
       return;
     }
 
-    const organizationId = validateQueryAndExtractId(req.query);
-    if (!organizationId) {
-      return res.status(400).json({ error: "Invalid organization ID" });
+    const projectId = validateQueryAndExtractId(req.query);
+    if (!projectId) {
+      return res.status(400).json({ error: "Invalid project ID" });
     }
 
-    // Check if organization exists
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
+    // Check if project exists
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
     });
 
-    if (!organization) {
-      return res.status(404).json({ error: "Organization not found" });
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
     }
 
     // Handle different HTTP methods
     switch (req.method) {
       case "GET":
-        return await handleGetApiKeys(req, res, organizationId);
+        return await handleGetApiKeys(req, res, projectId);
       case "POST":
-        return await handleCreateApiKey(req, res, organizationId);
+        return await handleCreateApiKey(req, res, projectId);
       default:
         res.status(405).json({ error: "Method Not Allowed" });
         return;
     }
   } catch (e) {
-    logger.error("Failed to process organization API key request", e);
+    logger.error("Failed to process project API key request", e);
     res.status(500).json({ error: "Internal server error" });
   }
 }
