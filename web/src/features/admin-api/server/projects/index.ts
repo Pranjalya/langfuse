@@ -104,11 +104,9 @@ export const handleCreateProject = async (
     });
 
     if (existingProject) {
-      return res
-        .status(400)
-        .json({
-          error: "Project with this name already exists in the organization",
-        });
+      return res.status(400).json({
+        error: "Project with this name already exists in the organization",
+      });
     }
 
     // Validate data retention entitlement

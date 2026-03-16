@@ -61,7 +61,7 @@ describe("MIT DataRetentionSchedulerJob", () => {
           retentionDays: 30,
         },
       }),
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -76,7 +76,7 @@ describe("MIT DataRetentionSchedulerJob", () => {
 
     // Then
     const projectACalls = mockQueue.add.mock.calls.filter(
-      (call: any) => call[1]?.payload?.projectId === projectId
+      (call: any) => call[1]?.payload?.projectId === projectId,
     );
     expect(projectACalls).toHaveLength(0);
   });
@@ -92,7 +92,7 @@ describe("MIT DataRetentionSchedulerJob", () => {
 
     // Then
     const projectACalls = mockQueue.add.mock.calls.filter(
-      (call: any) => call[1]?.payload?.projectId === projectId
+      (call: any) => call[1]?.payload?.projectId === projectId,
     );
     expect(projectACalls).toHaveLength(0);
   });

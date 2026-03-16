@@ -65,12 +65,10 @@ export const handleUpdateProjectMember = async (
       where: { email },
     });
     if (!user) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "User not found with the provided email. They must sign up first.",
-        });
+      return res.status(404).json({
+        error:
+          "User not found with the provided email. They must sign up first.",
+      });
     }
 
     // CRUCIAL: Verify user is a member of the parent organization
@@ -84,12 +82,10 @@ export const handleUpdateProjectMember = async (
     });
 
     if (!orgMembership) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "User is not a member of the parent organization. Add them to the organization first.",
-        });
+      return res.status(400).json({
+        error:
+          "User is not a member of the parent organization. Add them to the organization first.",
+      });
     }
 
     // Check if project membership exists

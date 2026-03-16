@@ -90,13 +90,22 @@ export const handleDataRetentionProcessingJob = async (job: Job) => {
 
   // 2. Delete ClickHouse / Postgres Data via shared utilities
   try {
-    const tracesDeleted = await deleteTracesOlderThanDays(projectId, cutoffDate);
+    const tracesDeleted = await deleteTracesOlderThanDays(
+      projectId,
+      cutoffDate,
+    );
     const observationsDeleted = await deleteObservationsOlderThanDays(
       projectId,
       cutoffDate,
     );
-    const scoresDeleted = await deleteScoresOlderThanDays(projectId, cutoffDate);
-    const eventsDeleted = await deleteEventsOlderThanDays(projectId, cutoffDate);
+    const scoresDeleted = await deleteScoresOlderThanDays(
+      projectId,
+      cutoffDate,
+    );
+    const eventsDeleted = await deleteEventsOlderThanDays(
+      projectId,
+      cutoffDate,
+    );
 
     logger.info(
       `Cleanup results for project ${projectId}: Traces: ${tracesDeleted}, Obs: ${observationsDeleted}, Scores: ${scoresDeleted}, Events: ${eventsDeleted}`,

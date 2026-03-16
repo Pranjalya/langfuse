@@ -65,12 +65,10 @@ export const handleUpdateOrganizationMember = async (
       where: { email },
     });
     if (!user) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "User not found with the provided email. They must sign up first.",
-        });
+      return res.status(404).json({
+        error:
+          "User not found with the provided email. They must sign up first.",
+      });
     }
 
     // Check if membership exists

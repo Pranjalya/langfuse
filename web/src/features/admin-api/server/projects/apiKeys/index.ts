@@ -108,12 +108,10 @@ export const handleCreateApiKey = async (
   } catch (error: any) {
     console.error("Error creating admin project api key", error);
     if (error.code === "P2002") {
-      return res
-        .status(409)
-        .json({
-          error:
-            "API key collision. Please try generating again or use a unique predefined key.",
-        });
+      return res.status(409).json({
+        error:
+          "API key collision. Please try generating again or use a unique predefined key.",
+      });
     }
     return res.status(500).json({ error: "Internal Server Error" });
   }
